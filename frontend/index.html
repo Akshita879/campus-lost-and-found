@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Lost & Found Portal</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Header Navigation -->
+  <header>
+    <div class="header-container">
+      <a href="#" class="brand" onclick="navigate('dashboard')">
+        <span>🔍 Campus L&F</span>
+        <span class="brand-badge">MVP Portal</span>
+      </a>
+
+      <nav id="main-nav">
+        <button class="nav-btn active" data-tab="dashboard" onclick="navigate('dashboard')">Dashboard</button>
+        <button class="nav-btn" data-tab="browse" onclick="navigate('browse')">Browse & Search</button>
+        <button class="nav-btn" data-tab="report" onclick="navigate('report')">Report Item</button>
+        <button class="nav-btn auth-required" data-tab="my-reports" onclick="navigate('my-reports')" style="display:none;">My Reports</button>
+        <button class="nav-btn auth-required" data-tab="my-claims" onclick="navigate('my-claims')" style="display:none;">My Claims</button>
+      </nav>
+
+      <div class="user-ctrl">
+        <div id="user-display" class="user-badge" style="display:none;"></div>
+        <button id="auth-btn" class="btn btn-primary" onclick="openAuthModal()">Login / Register</button>
+        <button id="logout-btn" class="btn btn-secondary" onclick="logout()" style="display:none;">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Areas -->
+  <main>
+
+    <!-- TAB 1: DASHBOARD -->
+    <section id="pane-dashboard" class="tab-pane active">
+      <div class="card" style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: white;">
+        <h1 style="font-size: 1.6rem; margin-bottom: 0.5rem;">Campus Lost & Found Portal</h1>
+        <p style="opacity: 0.9; max-width: 750px;">
+          A centralized, secure portal connecting lost belongings with their owners across campus.
+          Submit reports, search active items, discover algorithmic matches, and safely claim found property.
+        </p>
+        <div style="margin-top: 1rem; display: flex; gap: 0.75rem;">
+          <button class="btn btn-secondary" onclick="navigate('browse')">🔍 Browse All Reports</button>
+          <button class="btn btn-success" onclick="navigate('report')">➕ Report Lost or Found</button>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <div class="card-title">
+            <span>🚨 Recent Lost Items</span>
+            <button class="btn btn-sm btn-secondary" onclick="filterBrowse('LOST')">View All</button>
+          </div>
+          <div id="recent-lost-list" class="grid-2">Loading...</div>
+        </div>
+        <div>
+          <div class="card-title">
+            <span>📦 Recent Found Items</span>
+            <button class="btn btn-sm btn-secondary" onclick="filterBrowse('FOUND')">View All</button>
+          </div>
+          <div id="recent-found-list" class="grid-2">Loading...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: BROWSE & SEARCH -->
+    <section id="pane-browse" class="tab-pane">
+      <div class="card">
+        <div class="card-title">Search & Filter Reports</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; align-items: end;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Keyword</label>
+            <input type="text" id="search-keyword" class="form-control" placeholder="Bottle, calculator, keys...">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Category</label>
+            <select id="search-category" class="form-control">
+              <option value="">All Categories</option>
+              <option value="Bottle">Bottles & Tumblers</option>
+              <option value="Electronics">Electronics & Accessories</option>
+              <option value="ID & Cards">ID & Cards</option>
+              <option value="Books">Books & Notebooks</option>
+              <option value="Bags">Bags & Wallets</option>
+              <option value="Keys">Keys</option>
+              <option value="Clothing">Clothing & Apparel</option>
+              <option value="Accessories">Accessories & Jewelry</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Report Type</label>
+            <select id="search-type" class="form-control">
+              <option value="">All Types</option>
+              <option value="LOST">LOST Items Only</option>
+              <option value="FOUND">FOUND Items Only</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Campus Location</label>
+            <input type="text" id="search-location" class="form-control" placeholder="Library, Lab, Canteen...">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Date From</label>
+            <input type="date" id="search-date-from" class="form-control">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Date To</label>
+            <input type="date" id="search-date-to" class="form-control">
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-primary" style="flex:1;" onclick="applySearch(1)">Search</button>
+            <button class="btn btn-secondary" onclick="resetSearch()">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-title">
+        <span id="browse-results-count">Results</span>
+        <div id="pagination-controls" style="display: flex; gap: 0.5rem; align-items: center;"></div>
+      </div>
+      <div id="browse-cards-container" class="grid-3">Loading reports...</div>
+    </section>
+
+    <!-- TAB 3: REPORT ITEM -->
+    <section id="pane-report" class="tab-pane">
+      <div class="card" style="max-width: 650px; margin: 0 auto;">
+        <h2 class="card-title">Create Lost / Found Report</h2>
+        
+        <div id="auth-warning-report" class="toast error" style="position:static; margin-bottom: 1rem; display:none;">
+          ⚠️ Please login or register to submit a report.
+        </div>
+
+        <form id="create-report-form" onsubmit="handleCreateReport(event)">
+          <div class="form-group">
+            <label>Report Type *</label>
+            <div style="display: flex; gap: 1rem;">
+              <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                <input type="radio" name="report_type" value="LOST" checked>
+                <span class="badge badge-lost">I Lost Something</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                <input type="radio" name="report_type" value="FOUND">
+                <span class="badge badge-found">I Found Something</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="item_name">Item Name *</label>
+            <input type="text" id="item_name" class="form-control" required placeholder="e.g. Blue Milton Water Bottle, Casio fx-991EX">
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="category">Category *</label>
+              <select id="category" class="form-control" required>
+                <option value="">Select Category</option>
+                <option value="Bottle">Bottles & Tumblers</option>
+                <option value="Electronics">Electronics & Accessories</option>
+                <option value="ID & Cards">ID & Cards</option>
+                <option value="Books">Books & Notebooks</option>
+                <option value="Bags">Bags & Wallets</option>
+                <option value="Keys">Keys</option>
+                <option value="Clothing">Clothing & Apparel</option>
+                <option value="Accessories">Accessories & Jewelry</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="approximate_date">Approximate Date *</label>
+              <input type="date" id="approximate_date" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="location">Campus Location *</label>
+            <input type="text" id="location" class="form-control" required placeholder="e.g. Central Library 2nd Floor, Room 302, Cafeteria">
+          </div>
+
+          <div class="form-group">
+            <label for="description">Detailed Description *</label>
+            <textarea id="description" class="form-control" rows="4" required placeholder="Describe appearance, unique stickers, markings, brand, model... (Do not post confidential codes)"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="image_file">Optional Image (JPEG, PNG, WEBP, max 5MB)</label>
+            <input type="file" id="image_file" class="form-control" accept="image/jpeg,image/png,image/webp">
+          </div>
+
+          <button type="submit" id="submit-report-btn" class="btn btn-primary" style="width: 100%;">Submit Report</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB 4: POTENTIAL MATCHES VIEW -->
+    <section id="pane-matches" class="tab-pane">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h2 id="matches-lost-title" style="font-size: 1.25rem;">Potential Matches</h2>
+            <p id="matches-lost-subtitle" class="text-muted" style="font-size: 0.875rem;">Evaluating candidates against active FOUND items...</p>
+          </div>
+          <button class="btn btn-secondary" onclick="navigate('my-reports')">← Back to My Reports</button>
+        </div>
+      </div>
+      <div id="matches-container" class="grid-2">Loading match candidates...</div>
+    </section>
+
+    <!-- TAB 5: MY REPORTS -->
+    <section id="pane-my-reports" class="tab-pane">
+      <div class="card-title">
+        <span>📋 My Reports</span>
+        <button class="btn btn-primary" onclick="navigate('report')">➕ New Report</button>
+      </div>
+      <div id="my-reports-list" class="grid-2">Loading your reports...</div>
+    </section>
+
+    <!-- TAB 6: MY CLAIMS -->
+    <section id="pane-my-claims" class="tab-pane">
+      <div class="card-title">
+        <span>🛡️ My Submitted Claims</span>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Note: Verification details are strictly private between you and campus authorities. Items are physically inspected before handover.
+      </p>
+      <div id="my-claims-list" class="grid-2">Loading your claims...</div>
+    </section>
+
+  </main>
+
+  <!-- AUTH MODAL -->
+  <div id="auth-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div style="display: flex; gap: 0.5rem;">
+          <button id="modal-tab-login" class="nav-btn active" onclick="switchAuthTab('login')">Login</button>
+          <button id="modal-tab-register" class="nav-btn" onclick="switchAuthTab('register')">Register</button>
+        </div>
+        <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Campus Email</label>
+          <input type="email" id="login-email" class="form-control" required placeholder="student@campus.edu">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" class="form-control" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" onsubmit="handleRegister(event)" style="display:none;">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="reg-name" class="form-control" required placeholder="John Doe">
+        </div>
+        <div class="form-group">
+          <label>Campus Email</label>
+          <input type="email" id="reg-email" class="form-control" required placeholder="johndoe@campus.edu">
+        </div>
+        <div class="form-group">
+          <label>Password (min 8 characters)</label>
+          <input type="password" id="reg-password" class="form-control" required minlength="8" placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-success" style="width: 100%;">Create Account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- CLAIM SUBMISSION MODAL -->
+  <div id="claim-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="claim-modal-title">Submit Ownership Claim</h3>
+        <button class="modal-close" onclick="closeClaimModal()">&times;</button>
+      </div>
+      <form id="claim-form" onsubmit="handleSubmitClaim(event)">
+        <input type="hidden" id="claim-found-report-id">
+        <p id="claim-target-info" style="font-size:0.875rem; margin-bottom: 0.75rem;"></p>
+        
+        <div class="form-group">
+          <label>Link Your Lost Report (Optional)</label>
+          <select id="claim-lost-report-select" class="form-control">
+            <option value="">None (Claim without linking report)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Private Verification Details *</label>
+          <textarea id="claim-verification-details" class="form-control" rows="4" required placeholder="Provide identifying information known only to the owner: unique scratches, stickers, contents, or serial numbers. This is kept strictly private."></textarea>
+        </div>
+
+        <div style="display:flex; justify-content: flex-end; gap:0.5rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeClaimModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Claim</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <footer>
+    Campus Lost & Found Portal &bull; Mini Hackathon Project &bull; Built with FastAPI, MySQL 8, SQLAlchemy 2.0 &amp; RapidFuzz
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
