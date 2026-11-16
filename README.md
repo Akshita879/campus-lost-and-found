@@ -8,8 +8,9 @@
 
 ## 👥 Team Details
 
-- **Participant 1:** [Your Name / Registration Number / Role (e.g., Backend & Database)]
-- **Participant 2:** [Teammate Name / Registration Number / Role (if applicable)]
+- **Participant 1:** Akshita A
+- **Participant 2:** Sourabh
+- **Participant 2:** Sneha A
 
 ---
 
