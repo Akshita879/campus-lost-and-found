@@ -22,8 +22,11 @@ export default function ItemCard({ item, onDetails }) {
       <p className="mt-2 flex items-center gap-1 text-sm text-on-surface-variant"><MapPin size={14} className="text-primary" />{item.location}</p>
       <div className="mt-auto grid grid-cols-5 gap-2 pt-4">
         <Button variant="secondary" className="col-span-2 !bg-surface-low" onClick={() => onDetails?.(item)}>View details</Button>
-        {found ? <Button to={`/verify/${item.id}`} className="col-span-3">I'm the owner</Button>
-               : <Button to="/report?type=found" variant="muted" className="col-span-3">I found this</Button>}
+        {found
+          ? (item.relatedLostId
+              ? <Button variant="secondary" className="col-span-3 !bg-surface-low" disabled>Verified find</Button>
+              : <Button to={`/verify/${item.id}`} className="col-span-3">I'm the owner</Button>)
+          : <Button to={`/report?type=found&related=${item.id}`} variant="muted" className="col-span-3">I found this</Button>}
       </div>
     </motion.article>)
 }

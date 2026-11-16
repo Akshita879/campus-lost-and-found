@@ -8,7 +8,16 @@ from app.schemas.report import ReportPublicResponse
 class ClaimCreateRequest(BaseModel):
     report_id: int = Field(..., description="ID of the FOUND report being claimed")
     lost_report_id: Optional[int] = Field(None, description="Optional ID of claimant's LOST report")
-    verification_details: str = Field(..., min_length=5, description="Private identifying details to prove ownership")
+    verification_details: str = Field(..., min_length=2, description="Answer to the owner's verification question")
+
+
+class MeetupMessageRequest(BaseModel):
+    meetup_message: str = Field(
+        ...,
+        min_length=10,
+        max_length=1000,
+        description="Where/when/landmark for pickup meetup",
+    )
 
 
 class ClaimResponse(BaseModel):
@@ -17,6 +26,7 @@ class ClaimResponse(BaseModel):
     claimant_id: int
     lost_report_id: Optional[int] = None
     verification_details: str
+    meetup_message: Optional[str] = None
     status: ClaimStatus
     created_at: datetime.datetime
     updated_at: datetime.datetime

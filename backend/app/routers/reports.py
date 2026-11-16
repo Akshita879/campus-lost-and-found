@@ -10,7 +10,8 @@ from app.schemas.report import (
     ReportCreateRequest,
     ReportUpdateRequest,
     ReportPublicResponse,
-    ReportSearchResponse
+    ReportSearchResponse,
+    MeetupDetailsRequest,
 )
 from app.schemas.matching import ReportMatchesResponse
 from app.services.report_service import ReportService
@@ -51,6 +52,9 @@ async def create_report_with_image(
     report_type: ReportType = Form(...),
     approximate_date: datetime.date = Form(...),
     location: str = Form(..., min_length=2, max_length=255),
+    verification_question: Optional[str] = Form(None),
+    verification_answer: Optional[str] = Form(None),
+    related_lost_report_id: Optional[int] = Form(None),
     image: Optional[UploadFile] = File(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -65,7 +69,10 @@ async def create_report_with_image(
         description=description,
         report_type=report_type,
         approximate_date=approximate_date,
-        location=location
+        location=location,
+        verification_question=verification_question,
+        verification_answer=verification_answer,
+        related_lost_report_id=related_lost_report_id,
     )
     return await ReportService.create_report(db, current_user, data, image_file=image)
 
@@ -196,6 +203,20 @@ async def update_report_image(
     return await ReportService.update_report(
         db, current_user, report_id, ReportUpdateRequest(), image_file=image
     )
+
+
+@router.post(
+    "/{report_id}/meetup",
+    response_model=ReportPublicResponse,
+    summary="Lost owner shares meetup details with the finder (linked finds)",
+)
+def set_meetup_details(
+    report_id: int,
+    data: MeetupDetailsRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return ReportService.set_meetup_for_found(db, current_user, report_id, data.meetup_message)
 
 
 @router.delete(

@@ -21,7 +21,20 @@ class UserResponse(BaseModel):
     id: int
     name: str
     email: EmailStr
+    is_admin: bool = False
     created_at: datetime.datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdminUserResponse(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+    is_admin: bool
+    created_at: datetime.datetime
+    reports_count: int = 0
+    claims_count: int = 0
 
     model_config = ConfigDict(from_attributes=True)
 

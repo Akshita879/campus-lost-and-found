@@ -8,6 +8,8 @@ from app.database import Base
 class ClaimStatus(str, enum.Enum):
     PENDING = "PENDING"
     WITHDRAWN = "WITHDRAWN"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
 
 
 class Claim(Base):
@@ -18,6 +20,7 @@ class Claim(Base):
     claimant_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     lost_report_id = Column(Integer, ForeignKey("reports.id", ondelete="SET NULL"), nullable=True, index=True)
     verification_details = Column(Text, nullable=False)
+    meetup_message = Column(Text, nullable=True)  # where/when/landmark from claimant to finder
     status = Column(SQLEnum(ClaimStatus, native_enum=False, length=20), nullable=False, default=ClaimStatus.PENDING, index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow, nullable=False)

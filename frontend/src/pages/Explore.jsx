@@ -90,8 +90,10 @@ export default function Explore() {
               </dl>
               <div className="mt-5">
                 {sel.type === 'found'
-                  ? <Button to={`/verify/${sel.id}`} className="w-full">I'm the owner</Button>
-                  : <Button to="/report?type=found" className="w-full">I found something similar</Button>}
+                  ? (sel.relatedLostId
+                      ? <Button variant="secondary" className="w-full !bg-surface-low" disabled>Verified find</Button>
+                      : <Button to={`/verify/${sel.id}`} className="w-full">I'm the owner</Button>)
+                  : <Button to={`/report?type=found&related=${sel.id}`} className="w-full">I found this</Button>}
               </div>
             </motion.div>
           </motion.div>

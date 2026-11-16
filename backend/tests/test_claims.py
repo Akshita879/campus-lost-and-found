@@ -202,7 +202,7 @@ def test_withdraw_claim(client, auth_headers_user1, auth_headers_user2):
     assert repeat_res.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_other_user_cannot_view_claim_details(client, auth_headers_user1, auth_headers_user2):
+def test_holder_can_view_and_third_party_cannot(client, auth_headers_user1, auth_headers_user2, user1):
     found = client.post(
         "/api/v1/reports",
         json={
@@ -222,7 +222,21 @@ def test_other_user_cannot_view_claim_details(client, auth_headers_user1, auth_h
         headers=auth_headers_user2
     ).json()
 
-    # User 1 (founder) attempts to view User 2's claim verification details
+    # Found-item holder (user1) can view — needed to approve/reject pickup
     view_res = client.get(f"/api/v1/claims/{claim['id']}", headers=auth_headers_user1)
-    assert view_res.status_code == status.HTTP_403_FORBIDDEN
-    assert "Verification details and claims are strictly private" in view_res.json()["message"]
+    assert view_res.status_code == status.HTTP_200_OK
+
+    # Unrelated third user cannot view
+    reg = client.post(
+        "/api/v1/auth/register",
+        json={"name": "Third Party", "email": "third@campus.edu", "password": "Password123"},
+    )
+    assert reg.status_code == 201
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "third@campus.edu", "password": "Password123"},
+    )
+    third_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+    denied = client.get(f"/api/v1/claims/{claim['id']}", headers=third_headers)
+    assert denied.status_code == status.HTTP_403_FORBIDDEN
+

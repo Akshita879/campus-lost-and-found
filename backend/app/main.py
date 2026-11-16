@@ -8,7 +8,18 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
-from app.routers import auth_router, reports_router, claims_router, matches_router
+from app.routers import (
+    auth_router,
+    reports_router,
+    claims_router,
+    matches_router,
+    notifications_router,
+    admin_router,
+)
+# Ensure all models are registered on Base.metadata
+from app.models import User, Report, Claim, Notification  # noqa: F401
+from app.database import SessionLocal
+from app.utils.security import hash_password
 
 # Configure logging
 logging.basicConfig(
@@ -16,6 +27,35 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
 logger = logging.getLogger("campus_lost_found")
+
+
+def bootstrap_admin() -> None:
+    """Ensure a campus admin account exists (from env settings)."""
+    db = SessionLocal()
+    try:
+        email = settings.ADMIN_EMAIL.lower().strip()
+        admin = db.query(User).filter(User.email == email).first()
+        if admin:
+            if not admin.is_admin:
+                admin.is_admin = True
+                db.commit()
+                logger.info("Promoted existing user %s to admin", email)
+            return
+        admin = User(
+            name=settings.ADMIN_NAME,
+            email=email,
+            password_hash=hash_password(settings.ADMIN_PASSWORD),
+            is_admin=True,
+        )
+        db.add(admin)
+        db.commit()
+        logger.info("Created bootstrap admin account: %s", email)
+    except Exception as exc:
+        logger.warning("Could not bootstrap admin account: %s", exc)
+        db.rollback()
+    finally:
+        db.close()
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -56,6 +96,10 @@ app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(reports_router, prefix=settings.API_V1_STR)
 app.include_router(claims_router, prefix=settings.API_V1_STR)
 app.include_router(matches_router, prefix=settings.API_V1_STR)
+app.include_router(notifications_router, prefix=settings.API_V1_STR)
+app.include_router(admin_router, prefix=settings.API_V1_STR)
+
+bootstrap_admin()
 
 
 # Centralized Exception Handlers

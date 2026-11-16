@@ -38,7 +38,7 @@ export async function getItem(id) {
 }
 
 /**
- * payload: { title, category, description, location, date, type, question, answer, files: File[] }
+ * payload: { title, category, description, location, date, type, question, answer, relatedLostId, files }
  */
 export async function reportItem(payload) {
   if (USE_MOCKS) {
@@ -51,26 +51,32 @@ export async function reportItem(payload) {
     const approximateDate = payload.date || new Date().toISOString().slice(0, 10)
     const description = payload.description || ''
     const file = payload.files?.[0]?.file
+    const body = {
+      item_name: payload.title,
+      category: payload.category,
+      description,
+      report_type: reportType,
+      approximate_date: approximateDate,
+      location: payload.location,
+    }
+    if (reportType === 'LOST') {
+      if (payload.question) body.verification_question = payload.question
+      if (payload.answer) body.verification_answer = payload.answer
+    }
+    if (reportType === 'FOUND' && payload.relatedLostId) {
+      body.related_lost_report_id = Number(payload.relatedLostId)
+      body.verification_answer = payload.answer
+    }
     let data
     if (file) {
       const form = new FormData()
-      form.append('item_name', payload.title)
-      form.append('category', payload.category)
-      form.append('description', description)
-      form.append('report_type', reportType)
-      form.append('approximate_date', approximateDate)
-      form.append('location', payload.location)
+      Object.entries(body).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) form.append(k, String(v))
+      })
       form.append('image', file)
       data = (await http.post('/reports/upload', form)).data
     } else {
-      data = (await http.post('/reports', {
-        item_name: payload.title,
-        category: payload.category,
-        description,
-        report_type: reportType,
-        approximate_date: approximateDate,
-        location: payload.location,
-      })).data
+      data = (await http.post('/reports', body)).data
     }
     return { id: data.id, item: reportToItem(data) }
   } catch (err) {
@@ -88,7 +94,11 @@ export async function submitClaim(id, answer) {
       report_id: Number(id),
       verification_details: answer,
     })).data
-    return { status: String(data.status || 'PENDING').toLowerCase(), id: data.id }
+    return {
+      ...data,
+      status: String(data.status || 'PENDING').toLowerCase(),
+      id: data.id,
+    }
   } catch (err) {
     throw new Error(apiErrorMessage(err, 'Could not send your claim'))
   }

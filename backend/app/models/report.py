@@ -29,6 +29,13 @@ class Report(Base):
     approximate_date = Column(Date, nullable=False, index=True)
     location = Column(String(255), nullable=False, index=True)
     image_path = Column(String(500), nullable=True)
+    # Set by LOST owners; question is public so finders can answer. Answer is private.
+    verification_question = Column(Text, nullable=True)
+    verification_answer = Column(Text, nullable=True)
+    # FOUND reports may link back to a related LOST listing ("I found this")
+    related_lost_report_id = Column(Integer, ForeignKey("reports.id", ondelete="SET NULL"), nullable=True, index=True)
+    # Pickup note from the lost owner to the finder (where/when/landmark)
+    meetup_message = Column(Text, nullable=True)
     status = Column(SQLEnum(ReportStatus, native_enum=False, length=20), nullable=False, default=ReportStatus.ACTIVE, index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow, nullable=False)
@@ -37,3 +44,4 @@ class Report(Base):
     user = relationship("User", back_populates="reports", foreign_keys=[user_id])
     claims = relationship("Claim", back_populates="report", foreign_keys="Claim.report_id", cascade="all, delete-orphan")
     linked_claims = relationship("Claim", back_populates="lost_report", foreign_keys="Claim.lost_report_id")
+    related_lost_report = relationship("Report", remote_side="Report.id", foreign_keys=[related_lost_report_id])

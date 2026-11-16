@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
 
+    # Bootstrap campus admin (created on startup if missing)
+    ADMIN_EMAIL: str = "admin@campus.edu"
+    ADMIN_PASSWORD: str = "AdminPass123"
+    ADMIN_NAME: str = "Campus Admin"
+
     # CORS
     CORS_ORIGINS: Union[str, List[str]] = ["*"]
 
