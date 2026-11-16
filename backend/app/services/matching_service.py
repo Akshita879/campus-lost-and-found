@@ -5,7 +5,14 @@ from fastapi import HTTPException, status
 from rapidfuzz import fuzz
 
 from app.models.report import Report, ReportType, ReportStatus
-from app.schemas.matching import MatchCandidate, ReportMatchesResponse, ScoreBreakdown
+from app.schemas.matching import (
+    MatchCandidate,
+    ReportMatchesResponse,
+    ScoreBreakdown,
+    UserMatchPair,
+    UserMatchesResponse,
+)
+from app.schemas.report import ReportPublicResponse
 from app.config import settings
 
 
@@ -160,3 +167,58 @@ class MatchingService:
             lost_item_name=lost_report.item_name,
             matches=matches
         )
+
+    @classmethod
+    def find_matches_for_user(cls, db: Session, user_id: int) -> UserMatchesResponse:
+        """
+        Aggregate potential FOUND matches for every ACTIVE LOST report owned by the user.
+        Powers the frontend Matches page (GET /matches).
+        """
+        lost_reports = (
+            db.query(Report)
+            .filter(
+                Report.user_id == user_id,
+                Report.report_type == ReportType.LOST,
+                Report.status.in_([ReportStatus.ACTIVE, ReportStatus.CLAIM_PENDING]),
+            )
+            .order_by(Report.created_at.desc())
+            .all()
+        )
+
+        found_candidates = (
+            db.query(Report)
+            .filter(
+                Report.report_type == ReportType.FOUND,
+                Report.status == ReportStatus.ACTIVE,
+            )
+            .all()
+        )
+
+        pairs: List[UserMatchPair] = []
+        for lost in lost_reports:
+            scored: List[MatchCandidate] = []
+            for found in found_candidates:
+                if found.id == lost.id or found.user_id == user_id:
+                    continue
+                candidate = cls.evaluate_pair(lost, found)
+                if candidate:
+                    scored.append(candidate)
+            scored.sort(key=lambda m: m.similarity_score, reverse=True)
+            for candidate in scored[: settings.MATCH_MAX_RESULTS]:
+                found_report = next((f for f in found_candidates if f.id == candidate.found_report_id), None)
+                if not found_report:
+                    continue
+                pairs.append(
+                    UserMatchPair(
+                        id=f"{lost.id}-{found_report.id}",
+                        lost_report_id=lost.id,
+                        found_report_id=found_report.id,
+                        similarity_score=candidate.similarity_score,
+                        score_breakdown=candidate.score_breakdown,
+                        lost=ReportPublicResponse.model_validate(lost),
+                        found=ReportPublicResponse.model_validate(found_report),
+                    )
+                )
+
+        pairs.sort(key=lambda p: p.similarity_score, reverse=True)
+        return UserMatchesResponse(matches=pairs)

@@ -2,6 +2,8 @@ import datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
+from app.schemas.report import ReportPublicResponse
+
 
 class ScoreBreakdown(BaseModel):
     category: float = Field(..., description="Category similarity score (0-100)")
@@ -28,3 +30,18 @@ class ReportMatchesResponse(BaseModel):
     lost_report_id: int
     lost_item_name: str
     matches: List[MatchCandidate]
+
+
+class UserMatchPair(BaseModel):
+    """Aggregated lost↔found pair for the Matches page."""
+    id: str
+    lost_report_id: int
+    found_report_id: int
+    similarity_score: float
+    score_breakdown: ScoreBreakdown
+    lost: ReportPublicResponse
+    found: ReportPublicResponse
+
+
+class UserMatchesResponse(BaseModel):
+    matches: List[UserMatchPair]

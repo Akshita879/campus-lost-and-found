@@ -1,7 +1,13 @@
 from app.schemas.user import UserRegisterRequest, UserLoginRequest, UserResponse, TokenResponse
 from app.schemas.report import ReportCreateRequest, ReportUpdateRequest, ReportPublicResponse, ReportSearchResponse
 from app.schemas.claim import ClaimCreateRequest, ClaimResponse, ClaimDetailResponse
-from app.schemas.matching import MatchCandidate, ReportMatchesResponse, ScoreBreakdown
+from app.schemas.matching import (
+    MatchCandidate,
+    ReportMatchesResponse,
+    ScoreBreakdown,
+    UserMatchPair,
+    UserMatchesResponse,
+)
 
 __all__ = [
     "UserRegisterRequest",
@@ -17,5 +23,7 @@ __all__ = [
     "ClaimDetailResponse",
     "MatchCandidate",
     "ReportMatchesResponse",
-    "ScoreBreakdown"
+    "ScoreBreakdown",
+    "UserMatchPair",
+    "UserMatchesResponse",
 ]

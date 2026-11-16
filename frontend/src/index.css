@@ -1,0 +1,5 @@
+@import '@fontsource-variable/plus-jakarta-sans';
+@tailwind base;@tailwind components;@tailwind utilities;
+body{@apply bg-background text-on-surface font-sans antialiased}
+input,select,textarea{@apply w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/15}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

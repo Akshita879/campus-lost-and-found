@@ -151,3 +151,44 @@ def test_matching_called_on_found_report_rejected(client, auth_headers_user1):
 
     res = client.get(f"/api/v1/reports/{found['id']}/matches", headers=auth_headers_user1)
     assert res.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_user_matches_aggregate_endpoint(client, auth_headers_user1, auth_headers_user2):
+    lost = client.post(
+        "/api/v1/reports",
+        json={
+            "item_name": "Navy Hydro Flask",
+            "category": "Bottle",
+            "description": "Navy 24oz flask with dent on rim",
+            "report_type": "LOST",
+            "approximate_date": "2026-11-12",
+            "location": "Gym"
+        },
+        headers=auth_headers_user1
+    ).json()
+
+    found = client.post(
+        "/api/v1/reports",
+        json={
+            "item_name": "Navy Hydro Flask bottle",
+            "category": "Bottle",
+            "description": "Navy flask with dent found in locker area",
+            "report_type": "FOUND",
+            "approximate_date": "2026-11-12",
+            "location": "Gym"
+        },
+        headers=auth_headers_user2
+    ).json()
+
+    res = client.get("/api/v1/matches", headers=auth_headers_user1)
+    assert res.status_code == status.HTTP_200_OK
+    payload = res.json()
+    assert "matches" in payload
+    assert any(
+        m["lost_report_id"] == lost["id"] and m["found_report_id"] == found["id"]
+        for m in payload["matches"]
+    )
+    top = payload["matches"][0]
+    assert "lost" in top and "found" in top
+    assert top["lost"]["item_name"]
+    assert top["found"]["item_name"]

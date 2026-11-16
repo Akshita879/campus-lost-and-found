@@ -8,7 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
-from app.routers import auth_router, reports_router, claims_router
+from app.routers import auth_router, reports_router, claims_router, matches_router
 
 # Configure logging
 logging.basicConfig(
@@ -42,8 +42,8 @@ app.mount(
     name="uploads"
 )
 
-# Optional: Mount frontend directory if it exists
-frontend_dir = Path(__file__).resolve().parent.parent.parent / "frontend"
+# Optional: Mount static vanilla UI if present (React app runs via Vite separately)
+frontend_dir = Path(__file__).resolve().parent.parent.parent / "frontend-vanilla"
 if frontend_dir.exists():
     app.mount(
         "/ui",
@@ -55,6 +55,7 @@ if frontend_dir.exists():
 app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(reports_router, prefix=settings.API_V1_STR)
 app.include_router(claims_router, prefix=settings.API_V1_STR)
+app.include_router(matches_router, prefix=settings.API_V1_STR)
 
 
 # Centralized Exception Handlers
