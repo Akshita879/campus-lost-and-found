@@ -160,17 +160,32 @@ cd backend
 alembic upgrade head
 ```
 
-### 5. Start the Application
+### 5. Start the Backend
 ```bash
 cd backend
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
+### 6. Start the React Frontend (FindIt UI)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Open the Vite URL shown in the terminal (usually `http://localhost:5173/`).
+
+### Local URLs
+| Surface | URL |
+|--------|-----|
+| React app (recommended) | `http://localhost:5173/` |
+| Vanilla UI (served by backend) | `http://localhost:8000/ui/` |
+| API docs (Swagger) | `http://localhost:8000/docs` |
+
 ---
 
 ## 📖 How to Use
 
-1. **Access the Portal:** Open your browser to `http://localhost:8000/ui/`.
+1. **Access the Portal:** Prefer the React app at `http://localhost:5173/`, or open the vanilla UI at `http://localhost:8000/ui/`.
 2. **Register & Login:** Click **Login / Register** in the top navigation to create an account.
 3. **Report Lost / Found:**
    - Click **Report Item**.
