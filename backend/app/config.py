@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import List, Union
 from pydantic import field_validator
@@ -52,7 +53,11 @@ class Settings(BaseSettings):
 
     @property
     def upload_path(self) -> Path:
-        path = BASE_DIR / self.UPLOAD_DIR
+        # Vercel serverless only allows writes under /tmp
+        if os.getenv("VERCEL") or self.ENVIRONMENT.lower() in {"production", "prod"}:
+            path = Path("/tmp") / self.UPLOAD_DIR
+        else:
+            path = BASE_DIR / self.UPLOAD_DIR
         path.mkdir(parents=True, exist_ok=True)
         return path
 
