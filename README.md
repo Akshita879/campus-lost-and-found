@@ -14,6 +14,23 @@
 
 ---
 
+## 🚀 Live Deployment
+
+This project is deployed on **Vercel** (React + FastAPI multi-service) with a **FreeDB** MySQL database.
+
+**Live app:** [https://campus-lost-and-found-six-pied.vercel.app/](https://campus-lost-and-found-six-pied.vercel.app/)
+
+### Admin credentials
+
+| Field | Value |
+|--------|--------|
+| Admin email | `admin@campus.edu` |
+| Admin password | `AdminPass123` |
+
+Admin login page: [https://campus-lost-and-found-six-pied.vercel.app/admin/login](https://campus-lost-and-found-six-pied.vercel.app/admin/login)
+
+---
+
 ## 📌 Problem
 
 Students and staff frequently lose personal belongings around campus—including student ID cards, keys, textbooks, water bottles, calculators, wallets, and electronic accessories. Without a centralized reporting and matching mechanism:
