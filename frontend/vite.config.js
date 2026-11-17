@@ -6,10 +6,10 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      // Frontend calls /api/v1/*; forward as-is to FastAPI (already mounted at /api/v1)
       '/api': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api/v1')
       },
       '/uploads': {
         target: 'http://127.0.0.1:8000',
