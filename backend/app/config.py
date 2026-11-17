@@ -53,13 +53,23 @@ class Settings(BaseSettings):
 
     @property
     def upload_path(self) -> Path:
-        # Vercel serverless only allows writes under /tmp
-        if os.getenv("VERCEL") or self.ENVIRONMENT.lower() in {"production", "prod"}:
-            path = Path("/tmp") / self.UPLOAD_DIR
-        else:
-            path = BASE_DIR / self.UPLOAD_DIR
-        path.mkdir(parents=True, exist_ok=True)
-        return path
+        # Prefer project-local uploads; fall back to /tmp on read-only hosts (Vercel).
+        candidates = [
+            BASE_DIR / self.UPLOAD_DIR,
+            Path("/tmp") / self.UPLOAD_DIR,
+        ]
+        if os.getenv("VERCEL"):
+            candidates = [Path("/tmp") / self.UPLOAD_DIR, BASE_DIR / self.UPLOAD_DIR]
+
+        last_error: OSError | None = None
+        for path in candidates:
+            try:
+                path.mkdir(parents=True, exist_ok=True)
+                return path
+            except OSError as exc:
+                last_error = exc
+                continue
+        raise OSError(f"Could not create upload directory; last error: {last_error}")
 
     model_config = SettingsConfigDict(
         env_file=(BASE_DIR / ".env", Path(".env")),
